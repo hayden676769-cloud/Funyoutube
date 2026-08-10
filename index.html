@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Funyoutube — Games</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#090b12;color:#fff}
+header{padding:24px 6%;background:linear-gradient(135deg,#11162a,#171022);position:sticky;top:0;z-index:5;border-bottom:1px solid #272b3b}
+.logo{font-size:30px;font-weight:900;color:#7c5cff}.logo span{color:#fff}
+.top{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+input{background:#111522;border:1px solid #30364b;color:white;border-radius:12px;padding:13px 16px;width:min(420px,90vw);outline:none}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+nav button,.favbtn{border:0;border-radius:10px;padding:10px 14px;background:#1a2030;color:#ddd;cursor:pointer}
+nav button.active,nav button:hover,.favbtn:hover{background:#7c5cff;color:#fff}
+main{padding:32px 6%}.hero{padding:25px 0}.hero h1{font-size:clamp(34px,6vw,60px);margin:0 0 10px}.hero p{color:#aeb4c7}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px}
+.card{background:#111522;border:1px solid #252b3d;border-radius:18px;padding:16px;transition:.2s;box-shadow:0 8px 25px #0003}
+.card:hover{transform:translateY(-5px);border-color:#7c5cff}.thumb{height:135px;border-radius:13px;display:grid;place-items:center;font-size:55px;background:linear-gradient(135deg,#30245e,#151b30)}
+.card h3{margin:14px 0 5px}.card small{color:#9299ae}.play{margin-top:14px;width:100%;padding:11px;border:0;border-radius:10px;background:#7c5cff;color:white;font-weight:bold;cursor:pointer}
+.fav{float:right;background:none;border:0;color:#8e95aa;font-size:22px;cursor:pointer}.fav.on{color:#ffd34e}
+#gameModal{display:none;position:fixed;inset:0;background:#000b;z-index:10;place-items:center;padding:20px}
+.panel{background:#101522;border:1px solid #30364b;border-radius:18px;padding:22px;width:min(700px,95vw);text-align:center}
+.close{float:right;background:#252b3d;color:white;border:0;border-radius:8px;padding:8px 12px;cursor:pointer}
+.gamearea{margin-top:20px;min-height:300px;display:grid;place-items:center}.bigbtn{font-size:22px;padding:20px 35px;border:0;border-radius:14px;background:#7c5cff;color:white;cursor:pointer}
+.ttt{display:grid;grid-template-columns:repeat(3,80px);gap:7px}.ttt button{height:80px;font-size:30px;background:#1d2435;color:#fff;border:0;border-radius:10px}
+.snake canvas{background:#05070b;border:1px solid #30364b}
+.empty{color:#8e95aa;padding:40px 0}
+</style>
+</head>
+<body>
+<header>
+  <div class="top"><div class="logo">Fun<span>youtube</span></div><input id="search" placeholder="🔎 Search games..."></div>
+  <nav id="cats">
+    <button class="active" data-cat="All">All</button><button data-cat="Arcade">Arcade</button>
+    <button data-cat="Puzzle">Puzzle</button><button data-cat="Action">Action</button><button data-cat="Favorites">⭐ Favorites</button>
+  </nav>
+</header>
+<main>
+<section class="hero"><h1>Play. Have fun. 🎮</h1><p>Welcome to Funyoutube — a simple gaming hub with games you can play right in your browser.</p></section>
+<section class="grid" id="grid"></section>
+</main>
+
+<div id="gameModal"><div class="panel"><button class="close" onclick="closeGame()">✕</button><h2 id="gameTitle"></h2><div class="gamearea" id="gameArea"></div></div></div>
+
+<script>
+const games=[
+{id:"clicker",name:"Mega Clicker",cat:"Arcade",icon:"🖱️",desc:"How fast can you click?",play:clicker},
+{id:"tictactoe",name:"Tic-Tac-Toe",cat:"Puzzle",icon:"❌",desc:"Beat the computer.",play:ttt},
+{id:"snake",name:"Snake",cat:"Action",icon:"🐍",desc:"Eat the food and grow.",play:snake},
+{id:"reaction",name:"Reaction Test",cat:"Arcade",icon:"⚡",desc:"Test your reaction speed.",play:reaction}
+];
+let favorites=JSON.parse(localStorage.getItem("funyoutube-favs")||"[]"), category="All";
+const grid=document.getElementById("grid"), search=document.getElementById("search");
+
+function render(){
+ let q=search.value.toLowerCase();
+ let list=games.filter(g=>(category==="All"||g.cat===category||(category==="Favorites"&&favorites.includes(g.id)))&&g.name.toLowerCase().includes(q));
+ grid.innerHTML=list.length?list.map(g=>`<article class="card"><button class="fav ${favorites.includes(g.id)?"on":""}" onclick="toggleFav('${g.id}')">★</button><div class="thumb">${g.icon}</div><h3>${g.name}</h3><small>${g.cat} · ${g.desc}</small><button class="play" onclick="openGame('${g.id}')">PLAY</button></article>`).join(""):`<div class="empty">No games found.</div>`;
+}
+function toggleFav(id){favorites=favorites.includes(id)?favorites.filter(x=>x!==id):[...favorites,id];localStorage.setItem("funyoutube-favs",JSON.stringify(favorites));render()}
+document.querySelectorAll("#cats button").forEach(b=>b.onclick=()=>{document.querySelectorAll("#cats button").forEach(x=>x.classList.remove("active"));b.classList.add("active");category=b.dataset.cat;render()});
+search.oninput=render; render();
+
+function openGame(id){let g=games.find(x=>x.id===id);document.getElementById("gameTitle").textContent=g.name;document.getElementById("gameArea").innerHTML="";document.getElementById("gameModal").style.display="grid";g.play(document.getElementById("gameArea"))}
+function closeGame(){document.getElementById("gameModal").style.display="none";document.getElementById("gameArea").innerHTML=""}
+
+function clicker(a){let n=0;a.innerHTML=`<p>Clicks: <b id="score">0</b></p><button class="bigbtn" id="click">CLICK!</button>`;a.querySelector("#click").onclick=()=>a.querySelector("#score").textContent=++n}
+function reaction(a){a.innerHTML=`<p id="msg">Wait for green...</p><button class="bigbtn" id="rbtn" disabled>WAIT</button>`;let start;const b=a.querySelector("#rbtn"),m=a.querySelector("#msg");let t=setTimeout(()=>{b.disabled=false;b.textContent="CLICK!";b.style.background="#21b66f";start=performance.now()},1000+Math.random()*3000);b.onclick=()=>{m.textContent=`Your reaction time: ${Math.round(performance.now()-start)} ms`;b.textContent="Try again";b.style.background="";b.onclick=()=>reaction(a)}}
+function ttt(a){let board=Array(9).fill("");let turn="X";a.innerHTML=`<div class="ttt">${board.map((_,i)=>`<button data-i="${i}"></button>`).join("")}</div><p id="status">Your turn</p>`;let bs=[...a.querySelectorAll("button")],st=a.querySelector("#status");const win=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];function winner(x){return win.some(w=>w.every(i=>board[i]===x))}function end(){if(winner("X"))return st.textContent="You win! 🎉";if(winner("O"))return st.textContent="Computer wins!";if(board.every(Boolean))return st.textContent="Draw!"}bs.forEach((b,i)=>b.onclick=()=>{if(board[i]||turn!=="X"||winner("X")||winner("O"))return;board[i]="X";b.textContent="X";if(!end()){turn="O";st.textContent="Computer thinking...";setTimeout(()=>{let free=board.map((v,j)=>v?null:j).filter(v=>v!==null);if(!free.length)return;let j=free[Math.floor(Math.random()*free.length)];board[j]="O";bs[j].textContent="O";turn="X";st.textContent="Your turn";end()},350)}})}
+function snake(a){a.innerHTML=`<div class="snake"><canvas width="320" height="320"></canvas><p>Use arrow keys. Eat the red food.</p></div>`;let c=a.querySelector("canvas"),x=c.getContext("2d"),s=[{x:10,y:10}],d={x:1,y:0},food={x:15,y:15},timer;function draw(){x.clearRect(0,0,320,320);x.fillStyle="#fff";s.forEach(p=>x.fillRect(p.x*16,p.y*16,15,15));x.fillStyle="#ff4d6d";x.fillRect(food.x*16,food.y*16,15,15)}function tick(){let h={x:s[0].x+d.x,y:s[0].y+d.y};if(h.x<0||h.y<0||h.x>=20||h.y>=20||s.some(p=>p.x===h.x&&p.y===h.y)){clearInterval(timer);alert("Game over!");return}s.unshift(h);if(h.x===food.x&&h.y===food.y)food={x:Math.floor(Math.random()*20),y:Math.floor(Math.random()*20)};else s.pop();draw()}document.onkeydown=e=>{if(e.key==="ArrowUp"&&d.y!==1)d={x:0,y:-1};if(e.key==="ArrowDown"&&d.y!==-1)d={x:0,y:1};if(e.key==="ArrowLeft"&&d.x!==1)d={x:-1,y:0};if(e.key==="ArrowRight"&&d.x!==-1)d={x:1,y:0}};draw();timer=setInterval(tick,120)}
+</script>
+</body>
+</html>
